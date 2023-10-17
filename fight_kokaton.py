@@ -15,8 +15,10 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     戻り値：横方向，縦方向のはみ出し判定結果（画面内：True／画面外：False）
     """
     yoko, tate = True, True
+
     if obj_rct.left < 0 or WIDTH < obj_rct.right:
         yoko = False
+
     if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
         tate = False
     return yoko, tate
@@ -51,6 +53,7 @@ class Bird:
         self.img = self.imgs[(+5, 0)]
         self.rct = self.img.get_rect()
         self.rct.center = xy
+
     def change_img(self, num: int, screen: pg.Surface):
         """
         こうかとん画像を切り替え，画面に転送する
@@ -66,17 +69,24 @@ class Bird:
         引数2 screen：画面Surface
         """
         sum_mv = [0, 0]
+
         for k, mv in __class__.delta.items():
+
             if key_lst[k]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
         self.rct.move_ip(sum_mv)
+
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
+
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.img = self.imgs[tuple(sum_mv)]    
         screen.blit(self.img, self.rct)
+
+
 class Score:
+
     def __init__(self):
         self.font = pg.font.SysFont("hgp創英角ポップ体", 30)
         self.color  = (0, 0, 255)
@@ -91,11 +101,8 @@ class Score:
         screen.blit(self.img, self.rct.center)
 
 
-
-
-
-
 class Beam:
+
     def __init__(self, bird: Bird):
         """
         ビーム画像Surfaceを生成する
@@ -106,13 +113,16 @@ class Beam:
         self.rct.left = bird.rct.right  # こうかとんの右横座標
         self.rct.centery = bird.rct.centery  # こうかとんの中心縦座標
         self.vx, self.vy = +5, 0
+
     def update(self, screen: pg.Surface):
         """
         ビームを速度vxにしたがって移動させる
         引数 screen：画面Surface
         """
         self.rct.move_ip(self.vx, self.vy)
-        screen.blit(self.img, self.rct)        
+        screen.blit(self.img, self.rct)    
+
+
 class Bomb:
     """
     爆弾に関するクラス
@@ -137,12 +147,16 @@ class Bomb:
         引数 screen：画面Surface
         """
         yoko, tate = check_bound(self.rct)
+
         if not yoko:
             self.vx *= -1
+
         if not tate:
             self.vy *= -1
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
+
+
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
@@ -155,10 +169,14 @@ def main():
 
     clock = pg.time.Clock()
     tmr = 0
+
     while True:
+
         for event in pg.event.get():
+
             if event.type == pg.QUIT:
                 return
+            
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 # キーが押されたら，かつ，キーの種類がスペースキーだったら
                 beam = Beam(bird)
@@ -167,14 +185,18 @@ def main():
         score.update(screen)
 
         for bomb in bombs:
+
             if bird.rct.colliderect(bomb.rct):
                 # ゲームオーバー時に，こうかとん画像を切り替え，1秒間表示させる
                 bird.change_img(8, screen)
                 pg.display.update()
                 time.sleep(1)
                 return
+            
         for i, bomb in enumerate(bombs):
+
             if beam is not None:
+                
                 if beam.rct.colliderect(bomb.rct):  # ビームと爆弾の衝突判定
                     # 撃墜＝Noneにする
                     beam = None
@@ -186,13 +208,16 @@ def main():
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
+
         for bomb in bombs:
             bomb.update(screen)
+
         if beam is not None:
             beam.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
+
 if __name__ == "__main__":
     pg.init()
     main()
